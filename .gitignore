@@ -1,0 +1,15 @@
+# ── Environment Variables (JANGAN PERNAH diupload ke GitHub) ──────
+.env
+.env.local
+.env.production
+
+# ── Dependencies ───────────────────────────────────────────────────
+node_modules/
+
+# ── Build Output ───────────────────────────────────────────────────
+dist/
+build/
+
+# ── Logs ───────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
