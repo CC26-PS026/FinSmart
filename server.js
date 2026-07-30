@@ -3,7 +3,13 @@ import cors         from 'cors'
 import dotenv       from 'dotenv'
 import helmet       from 'helmet'
 import rateLimit    from 'express-rate-limit'
+import path         from 'path'
+import { fileURLToPath } from 'url'
 dotenv.config()
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname  = path.dirname(__filename)
+const distPath   = path.join(__dirname, 'dist')
 
 import { initDB }        from './config/db.js'
 import authRoutes         from './routes/auth.js'
@@ -22,7 +28,8 @@ const PORT = process.env.PORT || 5000
 app.set('trust proxy', 1)
 
 // ── Security headers ───────────────────────────────────────────────
-app.use(helmet())
+// CSP dimatikan karena kita juga serve static build React dari server yang sama
+app.use(helmet({ contentSecurityPolicy: false }))
 
 // ── CORS ───────────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -63,8 +70,18 @@ app.use('/v1/notifications', notifRoutes)
 app.use('/v1/ratings',       ratingRoutes)
 app.use('/v1/simulations',   simulationRoutes)
 
-app.get('/', (req, res) => {
+// ── Health check API ─────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: '🚀 Finsmart API berjalan!', version: 'v1' })
+})
+
+// ── Serve frontend (hasil `vite build` di folder dist) ───────────
+app.use(express.static(distPath))
+
+app.get('*', (req, res, next) => {
+  // Route /v1/* yang tidak cocok tetap dianggap 404 API, bukan SPA fallback
+  if (req.path.startsWith('/v1')) return next()
+  res.sendFile(path.join(distPath, 'index.html'))
 })
 
 app.use((req, res) => {
