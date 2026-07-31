@@ -43,16 +43,17 @@ router.post('/', authMiddleware, async (req, res) => {
 
   try {
     const txId = id || crypto.randomUUID()
+    const txDate = date ? new Date(date) : new Date()
     await pool.query(
       `INSERT INTO transactions (id, user_id, title, category, amount, type, icon, date)
        VALUES (?,?,?,?,?,?,?,?)`,
-      [txId, req.user.id, title, category, Math.abs(amount), type, icon || '💰', date || new Date()]
+      [txId, req.user.id, title, category, Math.abs(amount), type, icon || '💰', txDate]
     )
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [txId])
     res.status(201).json({ message: 'Transaksi berhasil dicatat.', transaction: rows[0] })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: 'Gagal menyimpan transaksi.' })
+    res.status(500).json({ message: 'Gagal menyimpan transaksi.', detail: err.message })
   }
 })
 
@@ -75,7 +76,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         icon = COALESCE(?, icon),
         date = COALESCE(?, date)
        WHERE id = ? AND user_id = ?`,
-      [title, category, amount !== undefined ? Math.abs(amount) : undefined, type, icon, date, req.params.id, req.user.id]
+      [title, category, amount !== undefined ? Math.abs(amount) : undefined, type, icon, date ? new Date(date) : undefined, req.params.id, req.user.id]
     )
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [req.params.id])
     res.json({ message: 'Transaksi berhasil diperbarui.', transaction: rows[0] })

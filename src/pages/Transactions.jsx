@@ -423,7 +423,13 @@ function AddSheet({ onClose, onSave, onNotify }) {
       type, date: new Date().toISOString(),
       icon: categories.find(c => c.value === category)?.icon || '📦',
     }
-    try { await transactionApi.create(newTx) } catch { /* demo mode */ }
+    try {
+      await transactionApi.create(newTx)
+    } catch (err) {
+      setLoading(false)
+      toast(err?.message || 'Gagal menyimpan transaksi ke server.', 'error')
+      return
+    }
     setLoading(false)
 
     if (onNotify) {

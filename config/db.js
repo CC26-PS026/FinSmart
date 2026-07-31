@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   charset: 'utf8mb4',
-  timezone: '+07:00',  // WIB — pastikan Node dan MySQL pakai timezone yang sama
+  timezone: 'Z',  // MySQL Railway berjalan di UTC — biarkan driver baca/tulis waktu sebagai UTC
 })
 
 export async function initDB() {
