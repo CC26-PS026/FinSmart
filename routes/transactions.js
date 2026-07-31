@@ -1,4 +1,5 @@
 import express  from 'express'
+import crypto   from 'crypto'
 import { pool } from '../config/db.js'
 import { authMiddleware } from '../middleware/auth.js'
 
