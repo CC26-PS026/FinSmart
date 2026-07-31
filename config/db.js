@@ -124,6 +124,13 @@ export async function initDB() {
       if (e.code !== 'ER_DUP_FIELDNAME') throw e
     }
 
+    // Pastikan kolom two_fa_enabled ada di tabel users (dipakai di routes/auth.js)
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN two_fa_enabled TINYINT(1) DEFAULT 0`)
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') throw e
+    }
+
     // Pastikan kolom aspek rating ada (ignore error jika sudah ada)
     const aspectCols = ['aspect_design', 'aspect_ease', 'aspect_feature', 'aspect_performance']
     for (const col of aspectCols) {

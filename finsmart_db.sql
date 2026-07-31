@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   password        VARCHAR(255) NOT NULL,
   avatar          LONGTEXT DEFAULT NULL,
   role            ENUM('user','admin','superadmin') DEFAULT 'user',
+  is_active       TINYINT(1) DEFAULT 1,
   two_fa_enabled  TINYINT(1) DEFAULT 0,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
