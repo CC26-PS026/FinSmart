@@ -5,6 +5,15 @@ import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
+// Konversi Date -> format yang diterima kolom MySQL DATETIME ('YYYY-MM-DD HH:MM:SS')
+// Tidak mengandalkan mysql2 auto-convert Date object, karena di production
+// itu sempat lolos sebagai string ISO ('...T...Z') dan ditolak MySQL (ER_TRUNCATED_WRONG_VALUE).
+function toMysqlDatetime(input) {
+  const d = input ? new Date(input) : new Date()
+  const valid = isNaN(d.getTime()) ? new Date() : d
+  return valid.toISOString().slice(0, 19).replace('T', ' ')
+}
+
 // GET /v1/transactions — semua transaksi milik user, terbaru dulu
 router.get('/', authMiddleware, async (req, res) => {
   try {
@@ -44,7 +53,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
   try {
     const txId = id || crypto.randomUUID()
-    const txDate = date ? new Date(date) : new Date()
+    const txDate = toMysqlDatetime(date)
     await pool.query(
       `INSERT INTO transactions (id, user_id, title, category, amount, type, icon, date)
        VALUES (?,?,?,?,?,?,?,?)`,
@@ -77,7 +86,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         icon = COALESCE(?, icon),
         date = COALESCE(?, date)
        WHERE id = ? AND user_id = ?`,
-      [title, category, amount !== undefined ? Math.abs(amount) : undefined, type, icon, date ? new Date(date) : undefined, req.params.id, req.user.id]
+      [title, category, amount !== undefined ? Math.abs(amount) : undefined, type, icon, date ? toMysqlDatetime(date) : undefined, req.params.id, req.user.id]
     )
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [req.params.id])
     res.json({ message: 'Transaksi berhasil diperbarui.', transaction: rows[0] })
