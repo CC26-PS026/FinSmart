@@ -212,7 +212,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     )
     if (rows.length === 0) return res.status(404).json({ message: 'User tidak ditemukan.' })
 
-    const [[{ count: txCount }], [{ count: artCount }], [budgetCats]] = await Promise.all([
+    const [txCountRows, artCountRows, budgetRows] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM transactions WHERE user_id = ?', [req.user.id]),
       pool.query('SELECT COUNT(*) as count FROM articles'),
       pool.query(
@@ -225,6 +225,9 @@ router.get('/me', authMiddleware, async (req, res) => {
         [req.user.id]
       ),
     ])
+    const txCount = txCountRows[0][0].count
+    const artCount = artCountRows[0][0].count
+    const budgetCats = budgetRows[0][0]
 
     // budgetOk = persentase kategori yang masih dalam batas; 100 jika belum ada budget
     const budgetOk = budgetCats.total > 0
