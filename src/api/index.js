@@ -23,14 +23,14 @@ const api = axios.create({ baseURL: BASE_URL, headers: { 'Content-Type': 'applic
 api.interceptors.request.use((config) => { const t = getToken(); if (t) config.headers.Authorization = `Bearer ${t}`; return config })
 api.interceptors.response.use(r => r.data, error => {
   if (error.response?.status === 401) { removeToken(); if (!window.location.pathname.includes('/login')) window.location.href = '/login' }
-  return Promise.reject(new Error(error.response?.data?.message || 'Terjadi kesalahan jaringan'))
+  return Promise.reject(new Error(error.response?.data?.detail || error.response?.data?.message || 'Terjadi kesalahan jaringan'))
 })
 
 const adminApi = axios.create({ baseURL: BASE_URL, headers: { 'Content-Type': 'application/json' }, timeout: 15000 })
 adminApi.interceptors.request.use((config) => { const t = getAdminToken(); if (t) config.headers.Authorization = `Bearer ${t}`; return config })
 adminApi.interceptors.response.use(r => r.data, error => {
   if (error.response?.status === 401) { removeAdminToken(); if (!window.location.pathname.includes('/admin-login')) window.location.href = '/admin-login' }
-  return Promise.reject(new Error(error.response?.data?.message || 'Terjadi kesalahan jaringan'))
+  return Promise.reject(new Error(error.response?.data?.detail || error.response?.data?.message || 'Terjadi kesalahan jaringan'))
 })
 
 export const authApi = {
