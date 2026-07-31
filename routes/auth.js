@@ -212,27 +212,52 @@ router.get('/me', authMiddleware, async (req, res) => {
     )
     if (rows.length === 0) return res.status(404).json({ message: 'User tidak ditemukan.' })
 
-    const [txCountRows, artCountRows, budgetRows] = await Promise.all([
+    const [txCountRows, artCountRows] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM transactions WHERE user_id = ?', [req.user.id]),
       pool.query('SELECT COUNT(*) as count FROM articles'),
-      pool.query(
-        `SELECT
-           COUNT(*) AS total,
-           SUM(CASE WHEN used <= total AND total > 0 THEN 1 ELSE 0 END) AS ok
-         FROM budget_categories bc
-         JOIN budgets b ON bc.budget_id = b.id
-         WHERE b.user_id = ?`,
-        [req.user.id]
-      ),
     ])
     const txCount = txCountRows[0][0].count
     const artCount = artCountRows[0][0].count
-    const budgetCats = budgetRows[0][0]
 
-    // budgetOk = persentase kategori yang masih dalam batas; 100 jika belum ada budget
-    const budgetOk = budgetCats.total > 0
-      ? Math.round((budgetCats.ok / budgetCats.total) * 100)
-      : 100
+    // budgetOk dihitung LIVE dari transaksi bulan ini (bukan dari kolom
+    // budget_categories.used/total, karena kolom itu tidak pernah di-update
+    // dan selalu 0 — perhitungan real dilakukan di GET /budgets/current).
+    let budgetOk = 100
+    const month = new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+    const [budgetRows] = await pool.query(
+      'SELECT * FROM budgets WHERE user_id = ? AND month = ?', [req.user.id, month]
+    )
+    if (budgetRows.length) {
+      const b = budgetRows[0]
+      const [cats] = await pool.query('SELECT * FROM budget_categories WHERE budget_id = ?', [b.id])
+      const now = new Date()
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+      const lastDay  = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+      const [transactions] = await pool.query(
+        `SELECT category, amount, type FROM transactions WHERE user_id = ? AND DATE(date) BETWEEN ? AND ?`,
+        [req.user.id, firstDay, lastDay]
+      )
+      let totalIncome = parseFloat(b.total_income) || 0
+      if (totalIncome === 0) {
+        totalIncome = transactions.filter(t => t.type === 'masuk').reduce((s, t) => s + parseFloat(t.amount), 0)
+      }
+      const usedMap = { Kebutuhan: 0, Keinginan: 0, Tabungan: 0 }
+      transactions.filter(t => t.type === 'keluar').forEach(t => {
+        const cat = (t.category || '').toLowerCase()
+        const budgetCat = ['tagihan','kesehatan','transportasi','transport','makanan','kebutuhan'].some(k => cat.includes(k)) ? 'Kebutuhan'
+          : ['tabungan','investasi','nabung'].some(k => cat.includes(k)) ? 'Tabungan'
+          : 'Keinginan'
+        usedMap[budgetCat] += parseFloat(t.amount)
+      })
+      if (cats.length) {
+        const okCount = cats.filter(c => {
+          const totalBudget = totalIncome > 0 ? (totalIncome * c.percentage) / 100 : 0
+          const used = usedMap[c.name] || 0
+          return totalBudget === 0 || used <= totalBudget
+        }).length
+        budgetOk = Math.round((okCount / cats.length) * 100)
+      }
+    }
 
     const user = rows[0]
     user.stats = { transactions: txCount, articles: artCount, budgetOk }
