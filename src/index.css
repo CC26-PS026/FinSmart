@@ -107,7 +107,6 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
 }
 
 /* ── Mobile (≤ 480px) ── */
