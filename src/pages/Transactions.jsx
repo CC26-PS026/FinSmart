@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { transactionApi } from '../api'
-import { categories } from '../api/mockData'
+import { categories, incomeCategories } from '../api/mockData'
 import { useToast } from '../hooks/useToast'
 import { useNotifications } from '../hooks/useNotifications'
 import BottomNav from '../components/BottomNav'
@@ -279,9 +279,8 @@ export default function Transactions() {
               style={{
                 width: 44, height: 44, padding: 0,
                 borderRadius: '50%', flexShrink: 0,
-                border: '1.5px solid var(--primary)',
-                background: 'var(--primary-xlight, #EDE9FE)',
-                color: 'var(--primary)',
+                border: '1.5px solid #FCA5A5',
+                background: '#FEF2F2',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: exporting ? 'not-allowed' : 'pointer',
                 opacity: exporting ? 0.6 : 1,
@@ -291,14 +290,12 @@ export default function Transactions() {
               {exporting ? (
                 <span style={{ fontSize: 18, animation: 'spin 1s linear infinite', display:'inline-block' }}>⏳</span>
               ) : (
-                // PDF icon
-                <svg width={20} height={20} viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                  <polyline points="10 9 9 9 8 9"/>
+                // PDF icon — colorful red/orange file badge
+                <svg width={22} height={22} viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="#EF4444"/>
+                  <polygon points="14 2 20 8 14 8" fill="#FCA5A5"/>
+                  <rect x="5.5" y="13.5" width="13" height="6.5" rx="1.5" fill="#F97316"/>
+                  <text x="12" y="18.4" textAnchor="middle" fontSize="5.5" fontWeight="800" fill="white" fontFamily="Arial, sans-serif">PDF</text>
                 </svg>
               )}
             </button>
@@ -421,7 +418,7 @@ function AddSheet({ onClose, onSave, onNotify }) {
       title, category: category || 'Lainnya',
       amount: type === 'keluar' ? -Number(amount) : Number(amount),
       type, date: new Date().toISOString(),
-      icon: categories.find(c => c.value === category)?.icon || '📦',
+      icon: (type === 'keluar' ? categories : incomeCategories).find(c => c.value === category)?.icon || '📦',
     }
     try {
       await transactionApi.create(newTx)
@@ -451,7 +448,7 @@ function AddSheet({ onClose, onSave, onNotify }) {
 
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:20, background:'var(--bg)', borderRadius:12, padding:4 }}>
           {[['keluar','- Pengeluaran'],['masuk','+ Pemasukan']].map(([t,l]) => (
-            <button key={t} onClick={() => setType(t)} style={{
+            <button key={t} onClick={() => { setType(t); setCategory('') }} style={{
               padding:'12px', borderRadius:10, fontWeight:800, fontSize:'clamp(13px,3.5vw,14px)', border:'none', fontFamily:'var(--font-body)',
               background: type===t ? (t==='keluar' ? 'var(--danger)' : 'var(--success)') : 'transparent',
               color: type===t ? 'white' : 'var(--text-muted)', cursor:'pointer', transition:'all 0.2s'
@@ -471,7 +468,7 @@ function AddSheet({ onClose, onSave, onNotify }) {
         <div style={{ marginBottom:14 }}>
           <div className="input-label" style={{ marginBottom:10 }}>Kategori</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
-            {categories.map(cat => (
+            {(type === 'keluar' ? categories : incomeCategories).map(cat => (
               <button key={cat.value} onClick={() => setCategory(cat.value)} style={{
                 padding:'8px 4px', borderRadius:12, border:`2px solid ${category===cat.value ? 'var(--primary)' : 'var(--border)'}`,
                 background: category===cat.value ? 'var(--primary-xlight)' : 'white',

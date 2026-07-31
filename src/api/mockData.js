@@ -59,3 +59,13 @@ export const categories = [
   { label: 'Tagihan', icon: '📄', value: 'tagihan',    img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=80&h=80&fit=crop&auto=format' },
   { label: 'Lainnya', icon: '📦', value: 'lainnya',    img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
 ]
+
+// Kategori khusus untuk transaksi Pemasukan (+)
+export const incomeCategories = [
+  { label: 'Gaji', icon: '💼', value: 'gaji',       img: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Bonus', icon: '🎁', value: 'bonus',      img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Hadiah', icon: '🎉', value: 'hadiah',     img: 'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Investasi', icon: '📈', value: 'investasi', img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Freelance', icon: '💻', value: 'freelance', img: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Lainnya', icon: '📦', value: 'lainnya',    img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
+]
