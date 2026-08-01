@@ -130,13 +130,20 @@ export default function Profile() {
   const closeKeamanan = () => { setShowKeamanan(false); setKeamananStep('menu') }
 
   const menuItems = [
-    { icon:'👤', label:'Edit Profil',          action: () => setEditing(e => !e) },
-    { icon:'🔔', label:'Notifikasi',            action: () => navigate('/notifikasi') },
-    { icon:'🔒', label:'Keamanan',             action: () => setShowKeamanan(true) },
-    { icon:'📊', label:'Simulasi Investasi',   action: () => navigate('/simulation') },
-    { icon:'📚', label:'Riwayat Edukasi',      action: () => navigate('/education') },
-    { icon:'⭐', label:'Beri Rating Aplikasi', action: () => navigate('/rating') },
-    { icon:'❓', label:'Bantuan & FAQ',         action: () => navigate('/bantuan') },
+    { color:'#7C3AED', bg:'#F5F3FF', label:'Edit Profil',          action: () => setEditing(e => !e),
+      icon: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
+    { color:'#F59E0B', bg:'#FFFBEB', label:'Notifikasi',            action: () => navigate('/notifikasi'),
+      icon: <><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></> },
+    { color:'#EF4444', bg:'#FEF2F2', label:'Keamanan',             action: () => setShowKeamanan(true),
+      icon: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></> },
+    { color:'#06B6D4', bg:'#ECFEFF', label:'Simulasi Investasi',   action: () => navigate('/simulation'),
+      icon: <><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="18" y1="20" x2="18" y2="15"/></> },
+    { color:'#10B981', bg:'#ECFDF5', label:'Riwayat Edukasi',      action: () => navigate('/education'),
+      icon: <><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></> },
+    { color:'#F97316', bg:'#FFF7ED', label:'Beri Rating Aplikasi', action: () => navigate('/rating'),
+      icon: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
+    { color:'#7C3AED', bg:'#F5F3FF', label:'Bantuan & FAQ',         action: () => navigate('/bantuan'),
+      icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></> },
   ]
 
   return (
@@ -227,7 +234,9 @@ export default function Profile() {
         <div style={{ padding:'0 var(--page-padding)' }}>
           {menuItems.map(item => (
             <button key={item.label} onClick={item.action} style={{ width:'100%', display:'flex', alignItems:'center', gap:14, padding:'clamp(13px,3vw,16px)', background:'white', border:'1px solid var(--border-light)', borderRadius:'var(--radius-sm)', marginBottom:8, cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all 0.15s', textAlign:'left', fontFamily:'var(--font-body)' }}>
-              <span style={{ fontSize:'clamp(18px,5vw,22px)', width:32, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
+              <span style={{ width:36, height:36, borderRadius:10, background:item.bg, color:item.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{item.icon}</svg>
+              </span>
               <span style={{ flex:1, fontWeight:700, fontSize:'clamp(13px,3.5vw,15px)' }}>{item.label}</span>
               <span style={{ color:'var(--text-muted)', fontSize:18 }}>›</span>
             </button>
@@ -263,9 +272,12 @@ function KeamananModal({ step, setStep, onClose, user, toast }) {
   const twoFAEnabled = localStorage.getItem(LS_2FA) === 'true'
 
   const menuItems = [
-    { emoji:'🔑', title:'Ubah Password',          desc:'Ganti password akunmu',              step:'ubahPassword' },
-    { emoji:'🛡️', title:'Verifikasi 2 Langkah',   desc: twoFAEnabled ? 'Aktif – Email OTP'  : 'Nonaktif – Tambah lapisan keamanan', step:'twoFA', badge: twoFAEnabled ? 'Aktif' : null },
-    { emoji:'📱', title:'Perangkat Aktif',         desc:'Lihat sesi login aktif',             step:'perangkat'    },
+    { color:'#7C3AED', bg:'#F5F3FF', title:'Ubah Password',          desc:'Ganti password akunmu',              step:'ubahPassword',
+      icon: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></> },
+    { color:'#10B981', bg:'#ECFDF5', title:'Verifikasi 2 Langkah',   desc: twoFAEnabled ? 'Aktif – Email OTP'  : 'Nonaktif – Tambah lapisan keamanan', step:'twoFA', badge: twoFAEnabled ? 'Aktif' : null,
+      icon: <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/> },
+    { color:'#06B6D4', bg:'#ECFEFF', title:'Perangkat Aktif',         desc:'Lihat sesi login aktif',             step:'perangkat',
+      icon: <><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></> },
   ]
 
   const Wrapper = ({ children }) => (
@@ -300,7 +312,9 @@ function KeamananModal({ step, setStep, onClose, user, toast }) {
         <button key={item.title}
           onClick={() => setStep(item.step)}
           style={{ width:'100%', display:'flex', alignItems:'center', gap:14, padding:16, background:'var(--border-light)', border:'none', borderRadius:'var(--radius-sm)', marginBottom:10, cursor:'pointer', textAlign:'left' }}>
-          <span style={{ fontSize:24, width:36, textAlign:'center', flexShrink:0 }}>{item.emoji}</span>
+          <span style={{ width:36, height:36, borderRadius:10, background:item.bg, color:item.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{item.icon}</svg>
+          </span>
           <div style={{ flex:1 }}>
             <div style={{ fontWeight:800, fontSize:15, color:'var(--text)', fontFamily:'var(--font-body)', display:'flex', alignItems:'center', gap:6 }}>
               {item.title}

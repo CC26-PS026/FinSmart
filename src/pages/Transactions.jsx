@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { transactionApi } from '../api'
-import { categories, incomeCategories } from '../api/mockData'
+import { categories, incomeCategories, categoryGroups } from '../api/mockData'
 import { useToast } from '../hooks/useToast'
 import { useNotifications } from '../hooks/useNotifications'
 import BottomNav from '../components/BottomNav'
@@ -372,15 +372,22 @@ export default function Transactions() {
   )
 }
 
+// Cari warna kategori dari value-nya (bisa dari expense atau income)
+function findCatColor(value) {
+  const found = categories.find(c => c.value === value) || incomeCategories.find(c => c.value === value)
+  return found?.color
+}
+
 function TxRow({ tx, onDelete }) {
   const isOut = tx.type === 'keluar'
   const [menu, setMenu] = useState(false)
+  // tx.category disimpan sebagai slug (mis. 'makanan') untuk transaksi baru;
+  // kalau nggak ketemu (data lama/format lain), CategoryIcon otomatis pakai ikon default.
+  const catColor = findCatColor(tx.category) || (isOut ? 'var(--danger)' : 'var(--success)')
 
   return (
     <div className="flex items-center gap-12" style={{ padding:'11px 0', borderBottom:'1px solid var(--border-light)', position:'relative' }}>
-      <div style={{ width:42, height:42, borderRadius:12, background: isOut ? '#FEF2F2' : '#ECFDF5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
-        {tx.icon || (isOut ? '📤' : '📥')}
-      </div>
+      <CategoryIcon value={tx.category} color={catColor} size={20} bgSize={42}/>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontWeight:700, fontSize:'clamp(13px,3.5vw,14px)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.title}</div>
         <div style={{ color:'var(--text-muted)', fontSize:12 }}>{tx.category}</div>
@@ -399,6 +406,60 @@ function TxRow({ tx, onDelete }) {
         </div>
       )}
     </div>
+  )
+}
+
+// Ikon SVG berwarna per kategori — dipakai di daftar transaksi & fallback foto kategori
+const CATEGORY_ICONS = {
+  makanan:    <><path d="M6 2v6a2 2 0 002 2v10M6 2v20M18 2v20M18 2a4 4 0 00-4 4v4h4"/></>,
+  transport:  <><rect x="3" y="9" width="18" height="9" rx="2"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/><path d="M3 12h18M6 9V5a1 1 0 011-1h10a1 1 0 011 1v4"/></>,
+  tagihan:    <><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></>,
+  kesehatan:  <><path d="M20.8 8.6c0 5-8.8 10.4-8.8 10.4S3.2 13.6 3.2 8.6a4.6 4.6 0 018.8-1.9 4.6 4.6 0 018.8 1.9z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></>,
+  hiburan:    <><rect x="2.5" y="4" width="19" height="16" rx="2"/><line x1="7" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="17" y2="20"/><line x1="2.5" y1="9" x2="7" y2="9"/><line x1="2.5" y1="15" x2="7" y2="15"/><line x1="17" y1="9" x2="21.5" y2="9"/><line x1="17" y1="15" x2="21.5" y2="15"/></>,
+  belanja:    <><path d="M6 2l1.5 5M18 2l-1.5 5M3 7h18l-1.5 12a2 2 0 01-2 1.8H6.5a2 2 0 01-2-1.8z"/></>,
+  hobi:       <><rect x="2" y="6" width="20" height="12" rx="6"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="8.5" y1="10.5" x2="8.5" y2="13.5"/><circle cx="15" cy="10.5" r="1"/><circle cx="17.5" cy="13" r="1"/></>,
+  lainnya:    <><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></>,
+  tabungan:   <><path d="M4 12a7 7 0 0113-3h2a2 2 0 012 2v2l-2 1v2a1 1 0 01-1 1h-1v2h-3v-2H9a5 5 0 01-5-5z"/><circle cx="8" cy="10" r="0.8" fill="currentColor" stroke="none"/></>,
+  investasi:  <><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="21" y1="20" x2="21" y2="8"/></>,
+  gaji:       <><rect x="2.5" y="7" width="19" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="2.5" y1="12" x2="21.5" y2="12"/></>,
+  bonus:      <><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13"/><path d="M12 8c-2 0-3-1-3-2.5S10 3 12 3s3 1 3 2.5S14 8 12 8zM12 8c2 0 3-1 3-2.5"/></>,
+  hadiah:     <><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13"/><path d="M12 8c-2 0-3-1-3-2.5S10 3 12 3s3 1 3 2.5S14 8 12 8z"/></>,
+  freelance:  <><rect x="3" y="4" width="18" height="12" rx="1"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="9" y1="20" x2="9" y2="16"/><line x1="15" y1="20" x2="15" y2="16"/></>,
+}
+const DEFAULT_CAT_ICON = <><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></>
+
+function CategoryIcon({ value, color = 'var(--primary)', size = 20, bgSize }) {
+  const wrap = bgSize || size + 12
+  return (
+    <span style={{ width:wrap, height:wrap, borderRadius:'50%', background:`${color}1A`, color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        {CATEGORY_ICONS[value] || DEFAULT_CAT_ICON}
+      </svg>
+    </span>
+  )
+}
+
+function CategoryBtn({ cat, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      padding:'8px 4px', borderRadius:12, border:`2px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+      background: active ? 'var(--primary-xlight)' : 'white',
+      cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:6,
+      transition:'all 0.15s', overflow:'hidden'
+    }}>
+      <div style={{ width:44, height:44, borderRadius:10, overflow:'hidden', flexShrink:0, border: active ? '2px solid var(--primary)' : '2px solid transparent' }}>
+        <img
+          src={cat.img}
+          alt={cat.label}
+          style={{ width:'100%', height:'100%', objectFit:'cover' }}
+          onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }}
+        />
+          <div style={{ display:'none', width:'100%', height:'100%', alignItems:'center', justifyContent:'center', background:'#f3f4f6' }}>
+            <CategoryIcon value={cat.value} color={cat.color} size={20} bgSize={44}/>
+          </div>
+      </div>
+      <span style={{ fontSize:'clamp(9px,2.5vw,10px)', fontWeight:700, color: active ? 'var(--primary)' : 'var(--text-muted)', textAlign:'center', lineHeight:1.2 }}>{cat.label}</span>
+    </button>
   )
 }
 
@@ -469,27 +530,28 @@ function AddSheet({ onClose, onSave, onNotify }) {
 
         <div style={{ marginBottom:14 }}>
           <div className="input-label" style={{ marginBottom:10 }}>Kategori</div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
-            {(type === 'keluar' ? categories : incomeCategories).map(cat => (
-              <button key={cat.value} onClick={() => setCategory(cat.value)} style={{
-                padding:'8px 4px', borderRadius:12, border:`2px solid ${category===cat.value ? 'var(--primary)' : 'var(--border)'}`,
-                background: category===cat.value ? 'var(--primary-xlight)' : 'white',
-                cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:6,
-                transition:'all 0.15s', overflow:'hidden'
-              }}>
-                <div style={{ width:44, height:44, borderRadius:10, overflow:'hidden', flexShrink:0, border: category===cat.value ? '2px solid var(--primary)' : '2px solid transparent' }}>
-                  <img
-                    src={cat.img}
-                    alt={cat.label}
-                    style={{ width:'100%', height:'100%', objectFit:'cover' }}
-                    onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }}
-                  />
-                  <div style={{ display:'none', width:'100%', height:'100%', alignItems:'center', justifyContent:'center', fontSize:22, background:'#f3f4f6' }}>{cat.icon}</div>
+
+          {type === 'keluar' ? (
+            categoryGroups.map(g => {
+              const items = categories.filter(c => c.group === g.key)
+              if (items.length === 0) return null
+              return (
+                <div key={g.key} style={{ marginBottom:16 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
+                    <span style={{ fontSize:13 }}>{g.emoji}</span>
+                    <span style={{ fontSize:12, fontWeight:800, color:g.color }}>{g.label}</span>
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
+                    {items.map(cat => <CategoryBtn key={cat.value} cat={cat} active={category===cat.value} onClick={() => setCategory(cat.value)}/>)}
+                  </div>
                 </div>
-                <span style={{ fontSize:'clamp(9px,2.5vw,10px)', fontWeight:700, color: category===cat.value ? 'var(--primary)' : 'var(--text-muted)', textAlign:'center', lineHeight:1.2 }}>{cat.label}</span>
-              </button>
-            ))}
-          </div>
+              )
+            })
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
+              {incomeCategories.map(cat => <CategoryBtn key={cat.value} cat={cat} active={category===cat.value} onClick={() => setCategory(cat.value)}/>)}
+            </div>
+          )}
         </div>
 
         <div className="input-group">

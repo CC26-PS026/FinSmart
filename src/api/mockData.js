@@ -50,22 +50,34 @@ export const mockChartData = [
   { day: 'Min', amount: 75000 },
 ]
 
+// Setiap kategori pengeluaran dikelompokkan ke salah satu dari 3 grup 50/30/20
+// (dipakai untuk pengelompokan visual di form "Catat Transaksi")
 export const categories = [
-  { label: 'Makanan', icon: '🍜', value: 'makanan',    img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Transport', icon: '🚌', value: 'transport', img: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Belanja', icon: '🛒', value: 'belanja',    img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Kesehatan', icon: '💊', value: 'kesehatan', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Hiburan', icon: '🎬', value: 'hiburan',    img: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Tagihan', icon: '📄', value: 'tagihan',    img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Lainnya', icon: '📦', value: 'lainnya',    img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Makanan',     icon: '🍜', color:'#F97316', value: 'makanan',     group: 'kebutuhan', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Transportasi',icon: '🚌', color:'#3B82F6', value: 'transport',   group: 'kebutuhan', img: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Tagihan',     icon: '📄', color:'#7C3AED', value: 'tagihan',     group: 'kebutuhan', img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Kesehatan',   icon: '💊', color:'#EF4444', value: 'kesehatan',   group: 'kebutuhan', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Hiburan',     icon: '🎬', color:'#EC4899', value: 'hiburan',     group: 'keinginan', img: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Belanja',     icon: '🛒', color:'#D97706', value: 'belanja',     group: 'keinginan', img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Hobi',        icon: '🎮', color:'#8B5CF6', value: 'hobi',        group: 'keinginan', img: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Lainnya',     icon: '📦', color:'#6B7280', value: 'lainnya',     group: 'keinginan', img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Tabungan',    icon: '🐷', color:'#10B981', value: 'tabungan',    group: 'tabungan',  img: 'https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Investasi',   icon: '📈', color:'#059669', value: 'investasi',   group: 'tabungan',  img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&auto=format' },
+]
+
+// Label & warna tiap grup — dipakai untuk render section header di form transaksi
+export const categoryGroups = [
+  { key: 'kebutuhan', label: 'Kebutuhan', emoji: '🧾', color: '#7C3AED' },
+  { key: 'keinginan', label: 'Keinginan', emoji: '🎯', color: '#D97706' },
+  { key: 'tabungan',  label: 'Tabungan',  emoji: '💰', color: '#059669' },
 ]
 
 // Kategori khusus untuk transaksi Pemasukan (+)
 export const incomeCategories = [
-  { label: 'Gaji', icon: '💼', value: 'gaji',       img: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Bonus', icon: '🎁', value: 'bonus',      img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Hadiah', icon: '🎉', value: 'hadiah',     img: 'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Investasi', icon: '📈', value: 'investasi', img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Freelance', icon: '💻', value: 'freelance', img: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=80&h=80&fit=crop&auto=format' },
-  { label: 'Lainnya', icon: '📦', value: 'lainnya',    img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Gaji', icon: '💼', color:'#7C3AED', value: 'gaji',       img: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Bonus', icon: '🎁', color:'#EC4899', value: 'bonus',      img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Hadiah', icon: '🎉', color:'#F59E0B', value: 'hadiah',     img: 'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Investasi', icon: '📈', color:'#059669', value: 'investasi', img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Freelance', icon: '💻', color:'#06B6D4', value: 'freelance', img: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=80&h=80&fit=crop&auto=format' },
+  { label: 'Lainnya', icon: '📦', color:'#6B7280', value: 'lainnya',    img: 'https://images.unsplash.com/photo-1495461199391-8c39ab674f8f?w=80&h=80&fit=crop&auto=format' },
 ]

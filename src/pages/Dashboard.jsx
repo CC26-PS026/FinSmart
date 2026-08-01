@@ -275,11 +275,16 @@ export default function Dashboard() {
             <div className="section-title" style={{ marginBottom:12 }}>Aksi Cepat</div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:10 }}>
               {[
-                { label:'Catat',    emoji:'✏️',  action: () => navigate('/transactions') },
-                { label:'Budget',   emoji:'🎯',  action: () => navigate('/budget') },
-                { label:'Simulasi', emoji:'📊',  action: () => navigate('/simulation') },
-                { label:'Edukasi',  emoji:'📚',  action: () => navigate('/education') },
-                { label:'Laporan',  emoji:'📄',  action: downloadPDF },
+                { label:'Catat',    color:'#7C3AED', bg:'#F5F3FF', action: () => navigate('/transactions'),
+                  icon: <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/> },
+                { label:'Budget',   color:'#F59E0B', bg:'#FFFBEB', action: () => navigate('/budget'),
+                  icon: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></> },
+                { label:'Simulasi', color:'#06B6D4', bg:'#ECFEFF', action: () => navigate('/simulation'),
+                  icon: <><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="18" y1="20" x2="18" y2="15"/></> },
+                { label:'Edukasi',  color:'#10B981', bg:'#ECFDF5', action: () => navigate('/education'),
+                  icon: <><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></> },
+                { label:'Laporan',  color:'#EF4444', bg:'#FEF2F2', action: downloadPDF,
+                  icon: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></> },
               ].map(a => (
                 <button
                   key={a.label}
@@ -287,14 +292,18 @@ export default function Dashboard() {
                   style={{
                     background:'white', border:'1px solid var(--border-light)', borderRadius:'var(--radius)',
                     padding:'14px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:6,
-                    cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all 0.15s', fontSize:'clamp(16px,4vw,22px)'
+                    cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all 0.15s'
                   }}
                   onMouseDown={e => e.currentTarget.style.transform='scale(0.94)'}
                   onMouseUp={e => e.currentTarget.style.transform='scale(1)'}
                   onTouchStart={e => e.currentTarget.style.transform='scale(0.94)'}
                   onTouchEnd={e => e.currentTarget.style.transform='scale(1)'}
                 >
-                  {a.emoji}
+                  <span style={{ width:36, height:36, borderRadius:'50%', background:a.bg, color:a.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      {a.icon}
+                    </svg>
+                  </span>
                   <span style={{ fontSize:'clamp(8px,2vw,10px)', fontWeight:700, color:'var(--text-muted)' }}>{a.label}</span>
                 </button>
               ))}
