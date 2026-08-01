@@ -459,7 +459,9 @@ function AddSheet({ onClose, onSave, onNotify }) {
         <div style={{ textAlign:'center', marginBottom:20 }}>
           <div style={{ color:'var(--text-muted)', fontSize:13, marginBottom:6 }}>IDR</div>
           <input
-            type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)}
+            type="text" inputMode="numeric" placeholder="0"
+            value={amount ? Number(amount).toLocaleString('id-ID') : ''}
+            onChange={e => setAmount(e.target.value.replace(/\D/g, ''))}
             style={{ fontSize:'clamp(28px,8vw,40px)', fontWeight:900, textAlign:'center', border:'none', outline:'none',
               color: type==='keluar' ? 'var(--danger)' : 'var(--success)', background:'none', width:'100%', fontFamily:'var(--font-display)' }}
           />
