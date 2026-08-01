@@ -1,17 +1,32 @@
 import React, { useEffect, useState } from 'react'
-import { budgetApi } from '../api'
+import { budgetApi, transactionApi } from '../api'
 import BottomNav from '../components/BottomNav'
 
 export default function Budget() {
   const [budget, setBudget] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showIncomeSheet, setShowIncomeSheet] = useState(false)
 
   const load = () => {
     setLoading(true)
-    budgetApi.getCurrent()
-      .then(d => setBudget(d.budget))
+    Promise.all([budgetApi.getCurrent(), transactionApi.getAll()])
+      .then(([b, t]) => {
+        // Total pemasukan dihitung otomatis dari transaksi "masuk" yang sebenarnya,
+        // bukan dari angka yang diketik manual — supaya nggak pernah "aneh"/beda sendiri.
+        const realIncome = (t.transactions || [])
+          .filter(tx => tx.type === 'masuk')
+          .reduce((sum, tx) => sum + Number(tx.amount), 0)
+
+        const categories = (b.budget.categories || []).map(cat => {
+          const total = Math.round(realIncome * (cat.percentage / 100))
+          const used = cat.used || 0
+          const remaining = Math.max(0, total - used)
+          const status = total > 0 ? Math.round((used / total) * 100) : 0
+          return { ...cat, total, used, remaining, status, done: status >= 100, warning: status >= 80 && status < 100 }
+        })
+
+        setBudget({ ...b.budget, totalIncome: realIncome, categories })
+      })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }
@@ -53,15 +68,16 @@ export default function Budget() {
           </div>
         </div>
 
-        {/* Total income — klik untuk edit */}
+        {/* Total income — otomatis dari transaksi, tidak bisa diubah manual */}
         <div style={{ padding:'0 var(--page-padding) 16px' }}>
-          <button
-            onClick={() => setShowIncomeSheet(true)}
-            style={{ width:'100%', background:'var(--gradient-main)', color:'white', borderRadius:'var(--radius)', padding:'clamp(14px,3vw,18px) 20px', textAlign:'center', fontWeight:800, fontSize:'clamp(13px,3.5vw,15px)', boxShadow:'0 6px 24px rgba(124,58,237,0.3)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
+          <div
+            style={{ width:'100%', background:'var(--gradient-main)', color:'white', borderRadius:'var(--radius)', padding:'clamp(14px,3vw,18px) 20px', textAlign:'center', fontWeight:800, fontSize:'clamp(13px,3.5vw,15px)', boxShadow:'0 6px 24px rgba(124,58,237,0.3)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
           >
             <span>💵 Total Pemasukan: Rp {(budget.totalIncome || 0).toLocaleString('id-ID')}</span>
-            <span style={{ opacity:0.8, fontSize:12, fontWeight:600 }}>✏️ Ubah</span>
-          </button>
+          </div>
+          <div style={{ textAlign:'center', fontSize:11, color:'var(--text-muted)', marginTop:6 }}>
+            Dihitung otomatis dari transaksi pemasukanmu
+          </div>
         </div>
 
         {/* Budget cards */}
@@ -103,14 +119,6 @@ export default function Budget() {
         <div style={{ height:20 }}/>
       </div>
 
-      {showIncomeSheet && (
-        <IncomeSheet
-          currentIncome={budget.totalIncome || 0}
-          onClose={() => setShowIncomeSheet(false)}
-          onSaved={() => { setShowIncomeSheet(false); load() }}
-        />
-      )}
-
       <BottomNav/>
     </div>
   )
@@ -151,70 +159,6 @@ function BudgetCard({ cat }) {
       <div className="flex justify-between" style={{ marginTop:8, fontSize:12, color:'var(--text-muted)' }}>
         <span>Rp {(cat.used || 0).toLocaleString('id-ID')}</span>
         <span>Rp {(cat.total || 0).toLocaleString('id-ID')}</span>
-      </div>
-    </div>
-  )
-}
-
-function IncomeSheet({ currentIncome, onClose, onSaved }) {
-  const [income, setIncome] = useState(currentIncome > 0 ? String(currentIncome) : '')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSave = async () => {
-    const val = Number(income)
-    if (!val || val <= 0) { setError('Masukkan jumlah pemasukan yang valid'); return }
-    setLoading(true)
-    try {
-      await budgetApi.update({ totalIncome: val })
-      onSaved()
-    } catch (e) {
-      setError(e.message || 'Gagal menyimpan')
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
-        <div className="sheet-handle"/>
-        <h3 style={{ fontSize:'clamp(16px,4vw,18px)', fontWeight:800, marginBottom:8, textAlign:'center', fontFamily:'var(--font-display)' }}>
-          💵 Atur Total Pemasukan
-        </h3>
-        <p style={{ textAlign:'center', fontSize:13, color:'var(--text-muted)', marginBottom:20 }}>
-          Budget 50/30/20 dihitung otomatis dari pemasukan ini
-        </p>
-
-        <div style={{ textAlign:'center', marginBottom:20 }}>
-          <div style={{ color:'var(--text-muted)', fontSize:13, marginBottom:6 }}>IDR</div>
-          <input
-            type="number"
-            placeholder="0"
-            value={income}
-            onChange={e => { setIncome(e.target.value); setError('') }}
-            style={{ fontSize:'clamp(28px,8vw,40px)', fontWeight:900, textAlign:'center', border:'none', outline:'none',
-              color:'var(--primary)', background:'none', width:'100%', fontFamily:'var(--font-display)' }}
-            autoFocus
-          />
-          {income && Number(income) > 0 && (
-            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:8, lineHeight:1.8 }}>
-              Kebutuhan (50%): Rp {Math.round(Number(income)*0.5).toLocaleString('id-ID')}<br/>
-              Keinginan (30%): Rp {Math.round(Number(income)*0.3).toLocaleString('id-ID')}<br/>
-              Tabungan (20%): Rp {Math.round(Number(income)*0.2).toLocaleString('id-ID')}
-            </div>
-          )}
-        </div>
-
-        {error && <div style={{ color:'var(--danger)', fontSize:13, textAlign:'center', marginBottom:12 }}>{error}</div>}
-
-        <button
-          className="btn btn-primary w-full"
-          style={{ padding:'clamp(13px,3vw,16px)', fontSize:'clamp(14px,4vw,16px)' }}
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? <div className="spinner"/> : 'Simpan Pemasukan ✓'}
-        </button>
       </div>
     </div>
   )
