@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
-import { authApi } from '../api'
+import { authApi, budgetApi, transactionApi } from '../api'
 import BottomNav from '../components/BottomNav'
 import { logoBase64 } from '../assets/logo'
 
@@ -45,11 +45,33 @@ export default function Profile() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const avatarInputRef = React.useRef(null)
+  const [budgetOkLive, setBudgetOkLive] = useState(null)
 
   // Fetch stats lengkap + init device saat mount
   useEffect(() => {
     refetchProfile()
     addCurrentDevice()
+
+    // Hitung "Budget OK" langsung dari data budget + transaksi asli,
+    // supaya selalu update — bukan angka lama yang tersimpan di server.
+    Promise.all([budgetApi.getCurrent(), transactionApi.getAll()])
+      .then(([b, t]) => {
+        const realIncome = (t.transactions || [])
+          .filter(tx => tx.type === 'masuk')
+          .reduce((sum, tx) => sum + Number(tx.amount), 0)
+
+        const cats = b.budget?.categories || []
+        if (cats.length === 0) return
+
+        const okCount = cats.filter(cat => {
+          const total = realIncome * (cat.percentage / 100)
+          const status = total > 0 ? (cat.used || 0) / total * 100 : 0
+          return status <= 100
+        }).length
+
+        setBudgetOkLive(Math.round((okCount / cats.length) * 100))
+      })
+      .catch(() => {}) // gagal silent — fallback ke stat dari server
   }, []) // eslint-disable-line
 
   const handleAvatarChange = (e) => {
@@ -173,7 +195,7 @@ export default function Profile() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:10, marginTop:20 }}>
             {[
               { label:'Transaksi', value: user?.stats?.transactions ?? '—', color:'white' },
-              { label:'Budget OK', value: user?.stats?.budgetOk != null ? `${user.stats.budgetOk}%` : '—', color:'#86EFAC' },
+              { label:'Budget OK', value: budgetOkLive != null ? `${budgetOkLive}%` : (user?.stats?.budgetOk != null ? `${user.stats.budgetOk}%` : '—'), color:'#86EFAC' },
               { label:'Artikel',   value: user?.stats?.articles ?? '—',       color:'#FDE68A' },
             ].map(s => (
               <div key={s.label} style={{ background:'rgba(255,255,255,0.15)', borderRadius:'var(--radius-sm)', padding:'clamp(10px,3vw,14px) 8px' }}>
