@@ -22,7 +22,12 @@ export default function Budget() {
           const used = cat.used || 0
           const remaining = Math.max(0, total - used)
           const status = total > 0 ? Math.round((used / total) * 100) : 0
-          return { ...cat, total, used, remaining, status, done: status >= 100, warning: status >= 80 && status < 100 }
+          return {
+            ...cat, total, used, remaining, status,
+            over: status > 100,                          // kebablasan dari alokasi
+            done: status >= 95 && status <= 100,          // pas/hampir pas kena target
+            warning: status >= 80 && status < 95,         // hampir habis, belum lewat
+          }
         })
 
         setBudget({ ...b.budget, totalIncome: realIncome, categories })
@@ -86,17 +91,26 @@ export default function Budget() {
         </div>
 
         {/* Alert */}
-        {budget.categories?.some(c => c.warning) && (
-          <div style={{ margin:'8px var(--page-padding)', background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:'var(--radius-sm)', padding:'14px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
-            <span style={{ fontSize:20, flexShrink:0 }}>⚠️</span>
-            <div>
-              <div style={{ fontWeight:700, fontSize:14, color:'#92400E' }}>Budget keinginan hampir habis!</div>
-              <div style={{ fontSize:13, color:'#B45309', marginTop:2 }}>
-                Sisa Rp {budget.categories?.find(c => c.warning)?.remaining?.toLocaleString('id-ID')}
+        {budget.categories?.some(c => c.warning || c.over) && (() => {
+          const overCat = budget.categories.find(c => c.over)
+          const warnCat = budget.categories.find(c => c.warning)
+          const target = overCat || warnCat
+          return (
+            <div style={{ margin:'8px var(--page-padding)', background: overCat ? '#FEF2F2' : '#FFFBEB', border:`1px solid ${overCat ? '#FECACA' : '#FDE68A'}`, borderRadius:'var(--radius-sm)', padding:'14px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
+              <span style={{ fontSize:20, flexShrink:0 }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color: overCat ? '#991B1B' : '#92400E' }}>
+                  {overCat ? `Budget ${target.name.toLowerCase()} sudah kelebihan!` : `Budget ${target.name.toLowerCase()} hampir habis!`}
+                </div>
+                <div style={{ fontSize:13, color: overCat ? '#B91C1C' : '#B45309', marginTop:2 }}>
+                  {overCat
+                    ? `Kelebihan Rp ${((target.used||0)-(target.total||0)).toLocaleString('id-ID')}`
+                    : `Sisa Rp ${(target.remaining||0).toLocaleString('id-ID')}`}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Mapping info */}
         <div style={{ margin:'8px var(--page-padding) 0', background:'#F0F9FF', borderRadius:'var(--radius-sm)', padding:'12px 16px', border:'1px solid #BAE6FD' }}>
@@ -125,41 +139,49 @@ export default function Budget() {
 }
 
 function BudgetCard({ cat }) {
-  const pct = Math.min(cat.status || 0, 100)
-  const isOver = pct >= 90
+  const barPct = Math.min(cat.status || 0, 100) // bar tetap dibatasi 100% biar nggak meluber
   const colors = {
     'Kebutuhan': { bg:'#F5F3FF', border:'#DDD6FE', text:'#7C3AED', fill:'#7C3AED' },
     'Keinginan': { bg:'#FFFBEB', border:'#FDE68A', text:'#D97706', fill:'#F59E0B' },
     'Tabungan':  { bg:'#ECFDF5', border:'#A7F3D0', text:'#059669', fill:'#10B981' },
   }
-  const c = colors[cat.name] || colors['Kebutuhan']
+  const c = cat.over
+    ? { bg:'#FEF2F2', border:'#FECACA', text:'var(--danger)', fill:'var(--danger)' }
+    : (colors[cat.name] || colors['Kebutuhan'])
 
   return (
     <div style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius:'var(--radius)', padding:'clamp(14px,3vw,18px)', marginBottom:12 }}>
       <div className="flex justify-between items-center" style={{ marginBottom:12 }}>
         <div>
           <div style={{ fontWeight:800, fontSize:'clamp(14px,4vw,16px)', color:c.text }}>
-            {cat.done ? '✓ ' : cat.warning ? '⚠ ' : '● '}{cat.name} · {cat.percentage}%
+            {cat.over ? '⚠ ' : cat.done ? '✓ ' : cat.warning ? '⚠ ' : '● '}{cat.name} · {cat.percentage}%
           </div>
           <div style={{ color:'var(--text-muted)', fontSize:12, marginTop:2 }}>
             Dipakai Rp {(cat.used || 0).toLocaleString('id-ID')}
           </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontWeight:900, fontSize:'clamp(18px,5vw,22px)', color:c.text }}>{pct}%</div>
-          {cat.done
-            ? <div style={{ fontSize:11, color:'var(--success)', fontWeight:700 }}>Terpenuhi 🎉</div>
-            : <div style={{ fontSize:11, color:'var(--text-muted)' }}>sisa Rp {(cat.remaining || 0).toLocaleString('id-ID')}</div>
+          <div style={{ fontWeight:900, fontSize:'clamp(18px,5vw,22px)', color:c.text }}>{cat.status || 0}%</div>
+          {cat.over
+            ? <div style={{ fontSize:11, color:'var(--danger)', fontWeight:700 }}>Melebihi budget ⚠️</div>
+            : cat.done
+              ? <div style={{ fontSize:11, color:'var(--success)', fontWeight:700 }}>Terpenuhi 🎉</div>
+              : <div style={{ fontSize:11, color:'var(--text-muted)' }}>sisa Rp {(cat.remaining || 0).toLocaleString('id-ID')}</div>
           }
         </div>
       </div>
       <div className="progress-bar">
-        <div className="progress-fill" style={{ width:`${pct}%`, background: isOver ? 'var(--danger)' : c.fill }}/>
+        <div className="progress-fill" style={{ width:`${barPct}%`, background: c.fill }}/>
       </div>
       <div className="flex justify-between" style={{ marginTop:8, fontSize:12, color:'var(--text-muted)' }}>
         <span>Rp {(cat.used || 0).toLocaleString('id-ID')}</span>
         <span>Rp {(cat.total || 0).toLocaleString('id-ID')}</span>
       </div>
+      {cat.over && (
+        <div style={{ marginTop:8, fontSize:11, color:'var(--danger)' }}>
+          Kelebihan Rp {((cat.used || 0) - (cat.total || 0)).toLocaleString('id-ID')} dari alokasi
+        </div>
+      )}
     </div>
   )
 }
