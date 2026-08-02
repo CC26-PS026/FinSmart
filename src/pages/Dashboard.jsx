@@ -87,7 +87,7 @@ export default function Dashboard() {
 
       // 3 kotak statistik
       const stats = [
-        { label:'Saldo',       value:`Rp ${(data?.balance||0).toLocaleString('id-ID')}`,  color:[124,58,237] },
+        { label:'Saldo',       value:`${(data?.balance||0) < 0 ? '-' : ''}Rp ${Math.abs(data?.balance||0).toLocaleString('id-ID')}`,  color:[124,58,237] },
         { label:'Pemasukan',   value:`Rp ${(data?.income||0).toLocaleString('id-ID')}`,   color:[16,185,129] },
         { label:'Pengeluaran', value:`Rp ${(data?.expense||0).toLocaleString('id-ID')}`,  color:[239,68,68]  },
       ]
@@ -205,7 +205,7 @@ export default function Dashboard() {
             {loading
               ? <div className="skeleton" style={{ height:48, width:'60%', margin:'0 auto 10px', background:'rgba(255,255,255,0.2)', borderRadius:12 }}/>
               : <div style={{ color:'white', fontSize:'clamp(28px, 8vw, 40px)', fontWeight:900, letterSpacing:'-0.02em', marginBottom:10, fontFamily:'var(--font-display)' }}>
-                  Rp {(data?.balance || 0).toLocaleString('id-ID')}
+                  {(data?.balance || 0) < 0 ? '-' : ''}Rp {Math.abs(data?.balance || 0).toLocaleString('id-ID')}
                 </div>
             }
             <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', borderRadius:50, padding:'5px 14px' }}>

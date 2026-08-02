@@ -6,7 +6,7 @@ import { useNotifications } from '../hooks/useNotifications'
 import BottomNav from '../components/BottomNav'
 import jsPDF from 'jspdf'
 
-const fmt = (n) => `Rp ${Math.abs(n).toLocaleString('id-ID')}`
+const fmt = (n) => `${n < 0 ? '-' : ''}Rp ${Math.abs(n).toLocaleString('id-ID')}`
 
 function fmtDate(d) {
   const date = new Date(d), today = new Date(), yest = new Date()
