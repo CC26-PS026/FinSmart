@@ -19,26 +19,6 @@ const ARTICLE_ICONS = ['📈', '💡', '🏦', '📊', '⚠️', '🛒', '📄',
 const ARTICLE_COLORS = ['var(--primary-xlight)', 'var(--success-light)', 'var(--warning-light)', '#ECFEFF', 'var(--danger-light)', '#EFF6FF']
 const EMPTY_FORM = { title: '', content: '', category: 'INVESTASI', read_time: 5, image: '📈', bg_color: 'var(--primary-xlight)' }
 
-// ── STATIC DATA (fitur offline) ───────────────────────────────────────────────
-const STATIC_NOTIFS = [
-  { id: 0, dot: 'var(--danger)', text: 'Kritis: CPU Server mencapai 95%', time: '10 menit lalu', level: 'kritis', read: false },
-  { id: 1, dot: 'var(--warning)', text: 'Peringatan: Storage database 82% terpakai', time: '2 jam lalu', level: 'peringatan', read: false },
-  { id: 2, dot: 'var(--success)', text: 'Backup database berhasil diselesaikan', time: '1 hari lalu', level: 'info', read: true },
-]
-
-const STATIC_ADMINS = [
-  { id: 's1', name: 'Bima Prakoso', email: 'bima@finsmart.id', status: 'Aktif', lastDays: 35, workHours: 142, todayHours: 0, lastOnline: '35 hari lalu', color: 'var(--primary)' },
-  { id: 's2', name: 'Citra Lestari', email: 'citra@finsmart.id', status: 'Aktif', lastDays: 0, workHours: 218, todayHours: 6.5, lastOnline: 'Baru saja', color: 'var(--success)' },
-  { id: 's3', name: 'Doni Hariadi', email: 'doni@finsmart.id', status: 'Aktif', lastDays: 42, workHours: 89, todayHours: 0, lastOnline: '42 hari lalu', color: 'var(--warning)' },
-]
-
-const MESSAGE_TEMPLATES = [
-  { label: 'Reset Password', text: 'Halo {nama}, kami telah mereset password akun Anda. Silakan cek email untuk instruksi selanjutnya.' },
-  { label: 'Akun Dinonaktifkan', text: 'Halo {nama}, akun Anda telah dinonaktifkan sementara. Hubungi admin untuk informasi lebih lanjut.' },
-  { label: 'Selamat Datang', text: 'Halo {nama}, selamat datang di FinSmart! Akun Anda telah aktif dan siap digunakan.' },
-  { label: 'Pengumuman', text: 'Halo {nama}, ada pengumuman penting dari tim admin. Silakan cek dashboard Anda untuk detail terbaru.' },
-]
-
 function useBreakpoint() {
   const [bp, setBp] = useState(() => { const w = window.innerWidth; return w >= 1024 ? 'desktop' : w >= 640 ? 'tablet' : 'mobile' })
   useEffect(() => {
@@ -141,198 +121,26 @@ function Chip({ status }) {
   return <span style={{ background: bg, color: col, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 800 }}>{lbl}</span>
 }
 
-// ── SEND MESSAGE ──────────────────────────────────────────────────────────────
-function MsgPage({ user, onBack }) {
-  const bp = useBreakpoint()
-  const isDesktop = bp === 'desktop'
-  const [sub, setSub] = useState(''), [body, setBody] = useState(''), [type, setType] = useState('Notifikasi')
-  const [email, setEmail] = useState(true), [hi, setHi] = useState(false), [sending, setSending] = useState(false), [sent, setSent] = useState(false)
-  const MAX = 500
-  function applyTpl(t) { setSub(t.label + ' – ' + user.name); setBody(t.text.replace('{nama}', user.name.split(' ')[0])) }
-  function send() { if (!sub.trim() || !body.trim() || body.length > MAX) return; setSending(true); setTimeout(() => { setSending(false); setSent(true) }, 1400) }
-  if (sent) return (
-    <div className="a-overlay" onClick={onBack}><div className="a-modal" onClick={e => e.stopPropagation()} style={{ textAlign: 'center', maxWidth: 380 }}>
-      <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
-      <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 8 }}>Pesan Terkirim!</div>
-      <div style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 24 }}>Pesan berhasil dikirim ke <strong>{user.name}</strong>.{email && ' Notifikasi email juga dikirimkan.'}</div>
-      <button className="a-btn a-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={onBack}>Kembali</button>
-    </div></div>
-  )
-  return (
-    <div className="a-fade">
-      <button onClick={onBack} style={{ background: 'none', border: '1.5px solid var(--border)', borderRadius: 10, padding: '7px 14px', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 20, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>← Kembali</button>
-      <div className="a-card" style={{ padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-        <Av name={user.name} size={52} extra={{ borderRadius: 16 }} />
-        <div style={{ flex: 1 }}><div style={{ fontWeight: 900, fontSize: 16, marginBottom: 2 }}>Kirim Pesan ke {user.name}</div><div style={{ fontSize: 12, color: '#9CA3AF' }}>{user.email}</div></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 280px' : '1fr', gap: 20, alignItems: 'start' }}>
-        <div className="a-card">
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Jenis Pesan</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {['Notifikasi','Peringatan','Pengumuman','Pribadi'].map(t => (
-                <button key={t} onClick={() => setType(t)} style={{ padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${type===t?'var(--primary)':'var(--border)'}`, background: type===t?'var(--primary)':'white', color: type===t?'white':'var(--text-muted)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{t}</button>
-              ))}
-            </div>
-          </div>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Subjek</div>
-            <input className="a-inp" placeholder="Tulis subjek…" value={sub} onChange={e => setSub(e.target.value)} maxLength={120} />
-          </div>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Isi Pesan</div>
-            <textarea className="a-inp" style={{ minHeight: 140, resize: 'vertical' }} placeholder={`Tulis pesan untuk ${user.name}…`} value={body} onChange={e => setBody(e.target.value)} />
-            <div style={{ fontSize: 11, color: body.length > MAX ? 'var(--danger)' : '#9CA3AF', textAlign: 'right', marginTop: 4 }}>{body.length}/{MAX}</div>
-          </div>
-          <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#9CA3AF' }}>{hi && <span style={{ color: 'var(--danger)', marginRight: 8 }}>⚑ Prioritas Tinggi</span>}{email && '📧'}</span>
-            <button className="a-btn a-primary" onClick={send} disabled={!sub.trim() || !body.trim() || body.length > MAX || sending} style={{ opacity: (!sub.trim() || !body.trim() || sending) ? 0.5 : 1 }}>
-              {sending ? '⏳ Mengirim…' : '📨 Kirim Pesan'}
-            </button>
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div className="a-card" style={{ padding: 16 }}>
-            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 10 }}>Template Cepat</div>
-            {MESSAGE_TEMPLATES.map((t, i) => (
-              <button key={i} onClick={() => applyTpl(t)} style={{ width: '100%', background: 'var(--border-light)', border: 'none', borderRadius: 10, padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', color: '#374151', marginBottom: 6, transition: 'all .15s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary-xlight)'; e.currentTarget.style.color = 'var(--primary)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'var(--border-light)'; e.currentTarget.style.color = '#374151' }}>
-                📋 {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="a-card" style={{ padding: 16 }}>
-            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 12 }}>Opsi</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}><span style={{ fontSize: 13, fontWeight: 600 }}>Notifikasi Email</span><Toggle on={email} toggle={() => setEmail(v => !v)} /></div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span style={{ fontSize: 13, fontWeight: 600 }}>Prioritas Tinggi</span><Toggle on={hi} toggle={() => setHi(v => !v)} /></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── NOTIF SISTEM ──────────────────────────────────────────────────────────────
-function NotifPage({ notifs, setNotifs }) {
-  const LCOLOR = { kritis:'var(--danger)', peringatan:'var(--warning)', info:'var(--success)' }
-  const LBG = { kritis:'var(--danger-light)', peringatan:'var(--warning-light)', info:'var(--success-light)' }
-  const LLBL = { kritis:'Kritis', peringatan:'Peringatan', info:'Info' }
-  return (
-    <div className="a-fade">
-      <div className="a-card">
-        <div style={{ padding:'16px 20px',borderBottom:'1px solid var(--border-light)',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div><div style={{ fontWeight:800,fontSize:15 }}>Notifikasi Sistem</div><div style={{ fontSize:11,color:'#9CA3AF',marginTop:2 }}>{notifs.filter(n=>!n.read).length} belum dibaca</div></div>
-          <button onClick={() => setNotifs(p=>p.map(n=>({...n,read:true})))} style={{ background:'none',border:'none',color:'var(--primary)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit' }}>Tandai semua dibaca</button>
-        </div>
-        {notifs.map(n => (
-          <div key={n.id} className="a-row" style={{ opacity:n.read?.55:1,background:n.read?'transparent':'#F9F7FF' }} onClick={() => setNotifs(p=>p.map(x=>x.id===n.id?{...x,read:true}:x))}>
-            <div style={{ width:10,height:10,borderRadius:'50%',background:n.dot,marginTop:2,flexShrink:0 }} />
-            <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:n.read?500:700 }}>{n.text}</div><div style={{ fontSize:11,color:'#9CA3AF',marginTop:2 }}>{n.time}</div></div>
-            <span style={{ background:LBG[n.level],color:LCOLOR[n.level],borderRadius:8,padding:'3px 10px',fontSize:11,fontWeight:800,flexShrink:0 }}>{LLBL[n.level]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── MONITOR ADMIN ─────────────────────────────────────────────────────────────
-function MonitorPage({ realAdmins, myId, onRefresh, showToast }) {
-  const [sadmins, setSadmins] = useState(STATIC_ADMINS)
-  const [filt, setFilt] = useState('Semua')
-  const [conf, setConf] = useState(null)
-  const [toggling, setToggling] = useState(null)
-  const realMapped = realAdmins.filter(r=>String(r.id)!==String(myId)).map((r,i)=>({
-    id:`r${r.id}`, realId: r.id, name:r.name, email:r.email,
-    status: r.is_active === 0 ? 'Nonaktif' : 'Aktif',
-    lastDays:0, workHours:0, todayHours:0, lastOnline:'Baru saja', color:AV[(i+3)%AV.length]
-  }))
-  const all = [...sadmins, ...realMapped]
-  const filtered = all.filter(a => filt==='Semua' || a.status===filt)
-  const counts = { Semua:all.length, Aktif:all.filter(a=>a.status==='Aktif').length, Nonaktif:all.filter(a=>a.status==='Nonaktif').length }
-
-  async function toggle(id) {
-    const item = all.find(a => a.id === id)
-    if (!item) return setConf(null)
-    if (id.startsWith('r')) {
-      // Admin real — panggil API
-      setToggling(id)
-      try {
-        const res = await adminAuthApi.toggleAdminActive(item.realId)
-        showToast(res.message || 'Status berhasil diubah.')
-        onRefresh()
-      } catch(e) {
-        showToast(e.message || 'Gagal mengubah status.', 'error')
-      }
-      setToggling(null)
-    } else {
-      setSadmins(p=>p.map(a=>a.id===id?{...a,status:a.status==='Aktif'?'Nonaktif':'Aktif'}:a))
-    }
-    setConf(null)
-  }
-  const t = conf ? all.find(a=>a.id===conf) : null
-  return (
-    <div className="a-fade">
-      {t && (
-        <div className="a-overlay" onClick={() => setConf(null)}>
-          <div className="a-modal" onClick={e=>e.stopPropagation()} style={{ textAlign:'center',maxWidth:360 }}>
-            <div style={{ fontSize:48,marginBottom:12 }}>{t.status==='Aktif'?'🔒':'🔓'}</div>
-            <div style={{ fontWeight:900,fontSize:18,marginBottom:8,fontFamily:'var(--font-display)' }}>{t.status==='Aktif'?'Nonaktifkan Admin?':'Aktifkan Admin?'}</div>
-            <div style={{ color:'var(--text-muted)',fontSize:13,marginBottom:20 }}>{t.name}</div>
-            <div style={{ display:'flex',gap:10 }}>
-              <button className="a-btn a-ghost" style={{ flex:1,justifyContent:'center' }} onClick={() => setConf(null)}>Batal</button>
-              <button className="a-btn" style={{ flex:1,justifyContent:'center',background:t.status==='Aktif'?'var(--warning-light)':'var(--success-light)',color:t.status==='Aktif'?'#92400E':'#065F46' }} onClick={() => toggle(t.id)}>
-                {t.status==='Aktif'?'Ya, Nonaktifkan':'Ya, Aktifkan'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:12,marginBottom:20 }}>
-        {[{l:'Total Admin',v:all.length,c:'var(--primary)'},{l:'Aktif',v:counts.Aktif,c:'var(--success)'},{l:'Nonaktif',v:counts.Nonaktif,c:'var(--danger)'},{l:'Offline >30h',v:all.filter(a=>a.lastDays>30&&a.status==='Aktif').length,c:'var(--warning)'}].map(s=>(
-          <div key={s.l} className="a-stat" style={{ padding:16 }}><div style={{ fontSize:11,color:'#9CA3AF',fontWeight:700,textTransform:'uppercase',marginBottom:6 }}>{s.l}</div><div style={{ fontSize:24,fontWeight:900,color:s.c }}>{s.v}</div></div>
-        ))}
-      </div>
-      <div className="a-card">
-        <div style={{ padding:'16px 20px',borderBottom:'1px solid var(--border-light)',display:'flex',gap:8,flexWrap:'wrap',alignItems:'center' }}>
-          <div style={{ fontWeight:800,fontSize:15,marginRight:8 }}>Daftar Admin</div>
-          {['Semua','Aktif','Nonaktif'].map(s=><button key={s} className={`a-filter${filt===s?' on':''}`} onClick={()=>setFilt(s)}>{s} ({counts[s]||0})</button>)}
-        </div>
-        <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14,padding:20 }}>
-          {filtered.map(a => (
-            <div key={a.id} style={{ background:'#F9F7FF',border:`1px solid ${a.status==='Nonaktif'?'var(--danger-light)':'var(--primary-xlight)'}`,borderRadius:14,padding:16,opacity:a.status==='Nonaktif'?.65:1 }}>
-              <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:12 }}>
-                <div style={{ width:44,height:44,borderRadius:12,background:a.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:700,color:'#fff',flexShrink:0 }}>{initials(a.name)}</div>
-                <div style={{ flex:1,minWidth:0 }}>
-                  <div style={{ fontWeight:800,fontSize:14 }}>{a.name}</div>
-                  <div style={{ fontSize:11,color:'#9CA3AF',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{a.email}</div>
-                  <div style={{ fontSize:11,marginTop:2 }}>
-                    <span style={{ display:'inline-block',width:8,height:8,borderRadius:'50%',background:a.lastDays===0?'var(--success)':'var(--danger)',marginRight:4 }} />
-                    <span style={{ color:a.lastDays===0?'var(--success)':a.lastDays>30?'var(--danger)':'var(--warning)' }}>{a.lastOnline}</span>
-                  </div>
-                </div>
-                <Chip status={a.status} />
-              </div>
-              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10 }}>
-                <div style={{ background:'white',borderRadius:10,padding:'8px 10px',border:'1px solid var(--border)' }}><div style={{ fontSize:10,color:'#9CA3AF',marginBottom:2 }}>JAM KERJA</div><div style={{ fontWeight:800,color:'var(--primary)',fontFamily:'monospace' }}>{a.workHours}h</div></div>
-                <div style={{ background:'white',borderRadius:10,padding:'8px 10px',border:'1px solid var(--border)' }}><div style={{ fontSize:10,color:'#9CA3AF',marginBottom:2 }}>HARI INI</div><div style={{ fontWeight:800,color:a.todayHours>0?'var(--success)':'#9CA3AF',fontFamily:'monospace' }}>{a.todayHours>0?`${a.todayHours}h`:'—'}</div></div>
-              </div>
-              <button className="a-btn" disabled={toggling===a.id} style={{ width:'100%',justifyContent:'center',background:a.status==='Aktif'?'var(--warning-light)':'var(--success-light)',color:a.status==='Aktif'?'#92400E':'#065F46',opacity:toggling===a.id?0.7:1,cursor:toggling===a.id?'not-allowed':'pointer' }} onClick={() => setConf(a.id)}>
-                {toggling===a.id?'⏳ Memproses...':(a.status==='Aktif'?'🔒 Nonaktifkan':'🔓 Aktifkan')}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── LAPORAN ───────────────────────────────────────────────────────────────────
 function LaporanPage({ users, articles, ratings, ratingAvg }) {
   const totalTx = users.reduce((s,u)=>s+(u.transactions||0),0)
-  const MONTHLY = [{ b:'Januari 2025',r:'Rp 26.1jt',u:389,ret:'79.2%'},{b:'Februari 2025',r:'Rp 28.4jt',u:412,ret:'78.1%'},{b:'Maret 2025',r:'Rp 29.7jt',u:447,ret:'77.9%'}]
+
+  // Breakdown bulanan dihitung dari data pengguna asli (bukan data statis) —
+  // dikelompokkan berdasarkan bulan bergabung (joinDate) yang sebenarnya.
+  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+  const byMonth = {}
+  users.forEach(u => {
+    if (!u.joinDate || u.joinDate === '-') return
+    const d = new Date(u.joinDate)
+    if (isNaN(d)) return
+    const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`
+    if (!byMonth[key]) byMonth[key] = { key, label:`${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`, newUsers:0, tx:0 }
+    byMonth[key].newUsers += 1
+    byMonth[key].tx += (u.transactions||0)
+  })
+  const MONTHLY = Object.values(byMonth).sort((a,b)=>a.key.localeCompare(b.key))
+  const rangeLabel = MONTHLY.length ? `${MONTHLY[0].label} – ${MONTHLY[MONTHLY.length-1].label}` : '-'
+
   return (
     <div className="a-fade">
       <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:14,marginBottom:20 }}>
@@ -345,15 +153,19 @@ function LaporanPage({ users, articles, ratings, ratingAvg }) {
         ))}
       </div>
       <div className="a-card">
-        <div style={{ padding:'16px 20px',borderBottom:'1px solid var(--border-light)',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontWeight:800,fontSize:15 }}>Perbandingan Bulanan Q1 2025</div>
-          <span style={{ background:'var(--success-light)',color:'#065F46',borderRadius:8,padding:'3px 10px',fontSize:11,fontWeight:800 }}>Jan–Mar 2025</span>
+        <div style={{ padding:'16px 20px',borderBottom:'1px solid var(--border-light)',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8 }}>
+          <div style={{ fontWeight:800,fontSize:15 }}>Pengguna Baru per Bulan</div>
+          {MONTHLY.length>0 && <span style={{ background:'var(--success-light)',color:'#065F46',borderRadius:8,padding:'3px 10px',fontSize:11,fontWeight:800 }}>{rangeLabel}</span>}
         </div>
         <div style={{ overflowX:'auto' }}>
-          <table className="a-tbl">
-            <thead><tr><th>Bulan</th><th>Pendapatan</th><th>Pengguna Baru</th><th>Retensi</th></tr></thead>
-            <tbody>{MONTHLY.map(r=><tr key={r.b}><td style={{ fontWeight:700 }}>{r.b}</td><td style={{ color:'var(--success)',fontFamily:'monospace',fontWeight:700 }}>{r.r}</td><td style={{ fontFamily:'monospace' }}>{r.u}</td><td style={{ fontFamily:'monospace' }}>{r.ret}</td></tr>)}</tbody>
-          </table>
+          {MONTHLY.length===0 ? (
+            <div style={{ padding:48,textAlign:'center',color:'#9CA3AF',fontSize:13 }}>Belum ada data pengguna untuk ditampilkan.</div>
+          ) : (
+            <table className="a-tbl">
+              <thead><tr><th>Bulan</th><th>Pengguna Baru</th><th>Total Transaksi</th></tr></thead>
+              <tbody>{MONTHLY.map(r=><tr key={r.key}><td style={{ fontWeight:700 }}>{r.label}</td><td style={{ fontFamily:'monospace' }}>{r.newUsers}</td><td style={{ fontFamily:'monospace' }}>{r.tx}</td></tr>)}</tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
@@ -382,8 +194,6 @@ export default function AdminDashboard() {
   const [toast, setToast] = useState(null)
   const [loading, setLoading] = useState(false)
   const [selUser, setSelUser] = useState(null)
-  const [msgTarget, setMsgTarget] = useState(null)
-  const [sysNotifs, setSysNotifs] = useState(STATIC_NOTIFS)
   const [artForm, setArtForm] = useState(EMPTY_FORM)
   const [showArtForm, setShowArtForm] = useState(false)
   const [editArt, setEditArt] = useState(null)
@@ -421,7 +231,6 @@ export default function AdminDashboard() {
   const fu = users.filter(u => { const q=search.toLowerCase(); return (!q||u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q))&&(filt==='all'||u.status===filt) }).sort((a,b)=>{ if(sortBy==='name')return a.name.localeCompare(b.name); if(sortBy==='transactions')return b.transactions-a.transactions; return new Date(b.joinDate)-new Date(a.joinDate) })
   const totalActive = users.filter(u=>u.status==='active').length
   const totalTx = users.reduce((s,u)=>s+u.transactions,0)
-  const unread = sysNotifs.filter(n=>!n.read).length
 
   if (!admin) return null
 
@@ -432,11 +241,9 @@ export default function AdminDashboard() {
     {key:'ratings',icon:'ratings',label:'Rating'},
     {key:'admins',icon:'shield',label:'Administrator'},
     {key:'laporan',icon:'report',label:'Laporan',sec:'Tools'},
-    {key:'notif-sistem',icon:'bell',label:'Notifikasi Sistem',badge:unread,badgeRed:true},
-    {key:'monitor',icon:'monitor',label:'Monitor Admin'},
   ]
 
-  function goTab(k) { setTab(k); setSelUser(null); setMsgTarget(null); setDrawer(false) }
+  function goTab(k) { setTab(k); setSelUser(null); setDrawer(false) }
 
   const Sidebar = () => (
     <>
@@ -501,7 +308,7 @@ export default function AdminDashboard() {
       <div style={{ background:'white',borderBottom:'1px solid var(--border-light)',padding:'16px 28px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:150,boxShadow:'0 2px 10px rgba(124,58,237,0.05)' }}>
         <div>
           <h1 style={{ fontWeight:900,fontSize:22,color:'#111827',margin:0,fontFamily:'var(--font-display)',display:'flex',alignItems:'center',gap:10 }}>
-            <AIcon name={msgTarget?'send':cur?.icon} size={22} color="var(--primary)" /> {msgTarget?`Kirim Pesan ke ${msgTarget.name}`:cur?.label||'Dashboard'}
+            <AIcon name={cur?.icon} size={22} color="var(--primary)" /> {cur?.label||'Dashboard'}
           </h1>
           <p style={{ color:'#9CA3AF',fontSize:13,margin:'4px 0 0' }}>{tab==='users'?`${users.length} pengguna · ${totalActive} aktif`:tab==='articles'?`${articles.length} artikel`:tab==='ratings'?`${ratings.length} ulasan · rata-rata ${ratingAvg}⭐`:''}</p>
         </div>
@@ -547,7 +354,7 @@ export default function AdminDashboard() {
         <div style={{ display:'flex',flexDirection:'column',gap:14 }}>
           <div className="a-card" style={{ padding:16 }}>
             <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>Aksi Cepat</div>
-            {[{i:'📰',l:'Tambah Artikel',a:()=>{goTab('articles');openAdd()}},{i:'👤',l:'Monitor Admin',a:()=>goTab('monitor')},{i:'📊',l:'Lihat Laporan',a:()=>goTab('laporan')}].map(a=>(
+            {[{i:'📰',l:'Tambah Artikel',a:()=>{goTab('articles');openAdd()}},{i:'📊',l:'Lihat Laporan',a:()=>goTab('laporan')}].map(a=>(
               <button key={a.l} onClick={a.a} className="a-btn" style={{ width:'100%',background:'#F9F7FF',color:'#374151',justifyContent:'flex-start',border:'1px solid var(--primary-xlight)',marginBottom:8 }}
                 onMouseEnter={e=>{e.currentTarget.style.background='var(--primary-xlight)';e.currentTarget.style.color='var(--primary)'}}
                 onMouseLeave={e=>{e.currentTarget.style.background='#F9F7FF';e.currentTarget.style.color='#374151'}}>
@@ -555,13 +362,6 @@ export default function AdminDashboard() {
               </button>
             ))}
           </div>
-          {unread>0 && (
-            <div className="a-card" style={{ border:'1.5px solid var(--danger-light)',padding:'12px 16px',display:'flex',alignItems:'center',gap:8 }}>
-              <div style={{ width:8,height:8,borderRadius:'50%',background:'var(--danger)',flexShrink:0 }} />
-              <div style={{ flex:1 }}><div style={{ fontWeight:700,fontSize:13,color:'#DC2626' }}>{unread} Alert Sistem</div><div style={{ fontSize:11,color:'#9CA3AF' }}>{sysNotifs.find(n=>!n.read)?.text}</div></div>
-              <button onClick={()=>goTab('notif-sistem')} style={{ background:'var(--danger-light)',border:'none',color:'#DC2626',borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit' }}>Lihat</button>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -594,10 +394,10 @@ export default function AdminDashboard() {
       {isDesktop ? (
         <div className="a-card">
           <div style={{ overflowX:'auto' }}>
-          <table className="a-tbl" style={{ minWidth:760 }}>
-            <thead><tr><th>Pengguna</th><th>Email</th><th>Status</th><th>Transaksi</th><th>Bergabung</th><th>Terakhir Aktif</th><th>Aksi</th></tr></thead>
+          <table className="a-tbl" style={{ minWidth:680 }}>
+            <thead><tr><th>Pengguna</th><th>Email</th><th>Status</th><th>Transaksi</th><th>Bergabung</th><th>Terakhir Aktif</th></tr></thead>
             <tbody>
-              {fu.length===0 && <tr><td colSpan={7} style={{ padding:48,textAlign:'center',color:'#9CA3AF' }}>Tidak ada pengguna</td></tr>}
+              {fu.length===0 && <tr><td colSpan={6} style={{ padding:48,textAlign:'center',color:'#9CA3AF' }}>Tidak ada pengguna</td></tr>}
               {fu.map((u,i)=>(
                 <tr key={u.id} onClick={()=>setSelUser(u)}>
                   <td><div style={{ display:'flex',alignItems:'center',gap:10 }}><Av name={u.name} idx={i} size={36} /><span style={{ fontWeight:700 }}>{u.name}</span></div></td>
@@ -606,7 +406,6 @@ export default function AdminDashboard() {
                   <td style={{ fontWeight:700 }}>{u.transactions}</td>
                   <td style={{ color:'var(--text-muted)',fontSize:13 }}>{fmtDate(u.joinDate)}</td>
                   <td style={{ color:'var(--text-muted)',fontSize:13 }}>{timeAgo(u.lastActive)}</td>
-                  <td><button onClick={e=>{e.stopPropagation();setMsgTarget(u);setTab('__msg__')}} className="a-btn" style={{ background:'var(--primary-xlight)',color:'var(--primary)',padding:'5px 10px',fontSize:11,borderRadius:8 }}>📨 Pesan</button></td>
                 </tr>
               ))}
             </tbody>
@@ -765,8 +564,7 @@ export default function AdminDashboard() {
           ))}
         </div>
         <div style={{ display:'flex',gap:10 }}>
-          <button className="a-btn a-primary" style={{ flex:1,justifyContent:'center' }} onClick={()=>{setMsgTarget(selUser);setSelUser(null);setTab('__msg__')}}>📨 Kirim Pesan</button>
-          <button onClick={()=>setSelUser(null)} className="a-btn a-ghost" style={{ flex:1,justifyContent:'center' }}>Tutup</button>
+          <button onClick={()=>setSelUser(null)} className="a-btn a-primary" style={{ flex:1,justifyContent:'center' }}>Tutup</button>
         </div>
       </div>
     </div>
@@ -807,9 +605,6 @@ export default function AdminDashboard() {
           {tab==='ratings'      && <RatTab />}
           {tab==='admins'       && <AdminsTab />}
           {tab==='laporan'      && <LaporanPage users={users} articles={articles} ratings={ratings} ratingAvg={ratingAvg} />}
-          {tab==='notif-sistem' && <NotifPage notifs={sysNotifs} setNotifs={setSysNotifs} />}
-          {tab==='monitor'      && <MonitorPage realAdmins={admins} myId={admin.id} onRefresh={fetchAll} showToast={toast$} />}
-          {tab==='__msg__'      && msgTarget && <MsgPage user={msgTarget} onBack={()=>{setMsgTarget(null);setTab('users')}} />}
         </main>
       </div>
       <UserModal /><LogoutModal />{artModal}<DelModal /><Toast />
