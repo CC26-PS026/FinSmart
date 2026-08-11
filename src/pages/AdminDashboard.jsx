@@ -79,6 +79,10 @@ const S = `
   table.a-tbl td { padding:12px 16px; border-bottom:1px solid var(--border-light); }
   table.a-tbl tbody tr { cursor:pointer; transition:background 0.1s; }
   table.a-tbl tbody tr:hover td { background:#FAFAFE; }
+  @media (max-width: 380px) {
+    .a-overlay { padding:12px; }
+    .a-modal { padding:20px; border-radius:18px; }
+  }
 `
 
 function Toggle({ on, toggle }) {
@@ -139,6 +143,8 @@ function Chip({ status }) {
 
 // ── SEND MESSAGE ──────────────────────────────────────────────────────────────
 function MsgPage({ user, onBack }) {
+  const bp = useBreakpoint()
+  const isDesktop = bp === 'desktop'
   const [sub, setSub] = useState(''), [body, setBody] = useState(''), [type, setType] = useState('Notifikasi')
   const [email, setEmail] = useState(true), [hi, setHi] = useState(false), [sending, setSending] = useState(false), [sent, setSent] = useState(false)
   const MAX = 500
@@ -159,7 +165,7 @@ function MsgPage({ user, onBack }) {
         <Av name={user.name} size={52} extra={{ borderRadius: 16 }} />
         <div style={{ flex: 1 }}><div style={{ fontWeight: 900, fontSize: 16, marginBottom: 2 }}>Kirim Pesan ke {user.name}</div><div style={{ fontSize: 12, color: '#9CA3AF' }}>{user.email}</div></div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 280px' : '1fr', gap: 20, alignItems: 'start' }}>
         <div className="a-card">
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Jenis Pesan</div>
@@ -587,7 +593,8 @@ export default function AdminDashboard() {
       </div>
       {isDesktop ? (
         <div className="a-card">
-          <table className="a-tbl">
+          <div style={{ overflowX:'auto' }}>
+          <table className="a-tbl" style={{ minWidth:760 }}>
             <thead><tr><th>Pengguna</th><th>Email</th><th>Status</th><th>Transaksi</th><th>Bergabung</th><th>Terakhir Aktif</th><th>Aksi</th></tr></thead>
             <tbody>
               {fu.length===0 && <tr><td colSpan={7} style={{ padding:48,textAlign:'center',color:'#9CA3AF' }}>Tidak ada pengguna</td></tr>}
@@ -604,6 +611,7 @@ export default function AdminDashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div style={{ display:'grid',gridTemplateColumns:isTablet?'1fr 1fr':'1fr',gap:10 }}>
