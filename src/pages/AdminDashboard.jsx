@@ -793,7 +793,7 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div style={{ minHeight:'100vh',background:'#F9FAFB',fontFamily:'var(--font-body,system-ui,sans-serif)' }}>
+    <div style={{ minHeight:'100vh',width:'100%',background:'#F9FAFB',fontFamily:'var(--font-body,system-ui,sans-serif)' }}>
       <style>{S}</style>
       <Sidebar />
       <div style={{ marginLeft:isDesktop?240:0,minHeight:'100vh',display:'flex',flexDirection:'column',transition:'margin-left 0.28s' }}>
