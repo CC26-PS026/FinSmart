@@ -114,9 +114,10 @@ export const ratingApi = {
 }
 
 export const simulationApi = {
-  getAll: ()     => api.get('/simulations'),
-  save:   (data) => api.post('/simulations', data),
-  delete: (id)   => api.delete(`/simulations/${id}`),
+  getAll: ()           => api.get('/simulations'),
+  save:   (data)       => api.post('/simulations', data),
+  update: (id, data)   => api.put(`/simulations/${id}`, data),
+  delete: (id)          => api.delete(`/simulations/${id}`),
 }
 
 export default api

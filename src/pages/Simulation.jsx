@@ -23,6 +23,7 @@ export default function Simulation() {
   const [histLoading, setHistLoading] = useState(false)
   const [labelInput,  setLabelInput]  = useState('')
   const [showLabel,   setShowLabel]   = useState(false)
+  const [editingId,   setEditingId]   = useState(null)
 
   const result = useMemo(() => {
     const r = rate / 100 / 12, n = years * 12
@@ -57,23 +58,36 @@ export default function Simulation() {
 
   const handleSave = async () => {
     setSaving(true)
+    const payload = {
+      label:         labelInput.trim() || null,
+      modal, monthly, rate, years,
+      result_total:  result.total,
+      result_profit: result.profit,
+      result_pct:    result.pct,
+    }
     try {
-      await simulationApi.save({
-        label:         labelInput.trim() || null,
-        modal, monthly, rate, years,
-        result_total:  result.total,
-        result_profit: result.profit,
-        result_pct:    result.pct,
-      })
-      toast('Simulasi disimpan', 'success')
+      if (editingId) {
+        await simulationApi.update(editingId, payload)
+        toast('Simulasi diperbarui', 'success')
+      } else {
+        await simulationApi.save(payload)
+        toast('Simulasi disimpan', 'success')
+      }
       setShowLabel(false)
       setLabelInput('')
+      setEditingId(null)
       loadHistory()
     } catch {
-      toast('Gagal menyimpan simulasi', 'error')
+      toast(editingId ? 'Gagal memperbarui simulasi' : 'Gagal menyimpan simulasi', 'error')
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleCancelEdit = () => {
+    setShowLabel(false)
+    setLabelInput('')
+    setEditingId(null)
   }
 
   const handleDelete = async (id) => {
@@ -93,6 +107,18 @@ export default function Simulation() {
     setYears(Number(s.years))
     setShowHistory(false)
     toast('Simulasi dimuat', 'success')
+  }
+
+  const handleEdit = (s) => {
+    setModal(Number(s.modal))
+    setMonthly(Number(s.monthly))
+    setRate(Number(s.rate))
+    setYears(Number(s.years))
+    setLabelInput(s.label || '')
+    setEditingId(s.id)
+    setShowHistory(false)
+    setShowLabel(true)
+    toast('Ubah nilai lalu simpan untuk memperbarui', 'success')
   }
 
   return (
@@ -155,7 +181,9 @@ export default function Simulation() {
 
           {showLabel ? (
             <div className="card" style={{ marginBottom:20 }}>
-              <div style={{ fontWeight:700, fontSize:14, marginBottom:10 }}>Beri nama simulasi ini (opsional)</div>
+              <div style={{ fontWeight:700, fontSize:14, marginBottom:10 }}>
+                {editingId ? 'Perbarui nama simulasi (opsional)' : 'Beri nama simulasi ini (opsional)'}
+              </div>
               <input
                 className="input-field"
                 placeholder="cth: Target rumah 2030"
@@ -167,9 +195,9 @@ export default function Simulation() {
               />
               <div className="flex gap-8">
                 <button className="btn btn-primary" style={{ flex:1 }} onClick={handleSave} disabled={saving}>
-                  {saving ? 'Menyimpan...' : 'Simpan'}
+                  {saving ? (editingId ? 'Memperbarui...' : 'Menyimpan...') : (editingId ? 'Update' : 'Simpan')}
                 </button>
-                <button className="btn btn-outline" style={{ flex:1 }} onClick={() => { setShowLabel(false); setLabelInput('') }}>
+                <button className="btn btn-outline" style={{ flex:1 }} onClick={handleCancelEdit}>
                   Batal
                 </button>
               </div>
@@ -243,6 +271,7 @@ export default function Simulation() {
                     </div>
                     <div className="flex gap-8">
                       <button className="btn btn-outline" style={{ flex:1, padding:'8px 0', fontSize:12 }} onClick={() => handleLoad(s)}>Muat</button>
+                      <button className="btn btn-outline" style={{ flex:1, padding:'8px 0', fontSize:12 }} onClick={() => handleEdit(s)}>Edit</button>
                       <button className="btn btn-danger"  style={{ flex:1, padding:'8px 0', fontSize:12 }} onClick={() => handleDelete(s.id)}>Hapus</button>
                     </div>
                   </div>

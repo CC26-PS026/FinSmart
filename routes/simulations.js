@@ -43,6 +43,38 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 })
 
+// PUT /simulations/:id — update satu riwayat milik user
+router.put('/:id', authMiddleware, async (req, res) => {
+  const { label, modal, monthly, rate, years, result_total, result_profit, result_pct } = req.body
+  if (modal == null || monthly == null || rate == null || years == null)
+    return res.status(400).json({ message: 'modal, monthly, rate, dan years wajib diisi.' })
+  try {
+    const [exist] = await pool.query(
+      'SELECT id FROM simulations WHERE id = ? AND user_id = ?',
+      [req.params.id, req.user.id]
+    )
+    if (!exist.length) return res.status(404).json({ message: 'Simulasi tidak ditemukan.' })
+
+    await pool.query(
+      `UPDATE simulations
+          SET label = ?, modal = ?, monthly = ?, rate = ?, years = ?,
+              result_total = ?, result_profit = ?, result_pct = ?
+        WHERE id = ? AND user_id = ?`,
+      [
+        label || null,
+        modal, monthly, rate, years,
+        result_total, result_profit, result_pct,
+        req.params.id, req.user.id,
+      ]
+    )
+    const [rows] = await pool.query('SELECT * FROM simulations WHERE id = ?', [req.params.id])
+    res.json({ simulation: rows[0] })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Gagal memperbarui simulasi.' })
+  }
+})
+
 // DELETE /simulations/:id — hapus satu riwayat milik user
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
